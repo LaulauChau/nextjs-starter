@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  database:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=nextjs_starter
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+    name: postgres_data

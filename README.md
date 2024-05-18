@@ -2,23 +2,35 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
-First, run the development server:
+First, run the following command to install the dependencies and start the app:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+./scripts/start-app.sh
+```
+
+If this is your first time running the app, you may need to sync the database schema:
+
+```bash
+pnpm run db:push
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can start editing the page by modifying `app/[locale]/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## What's inside?
+
+This project uses the following technologies:
+
+- [next-intl](https://next-intl-docs.vercel.app/) for internationalization
+- [react-query](https://tanstack.com/query/latest/) for data fetching
+- [next-safe-action](https://next-safe-action.dev/) for server actions with type safety, input validation and more
+- [shadcn-ui](https://ui.shadcn.com/) for UI components
+- [tailwindcss](https://tailwindcss.com/) for styling
+- [biome](https://biomejs.dev/) for linting and formatting
+- [commitlint](https://commitlint.js.org/) for commit message linting
+- [husky](https://typicode.github.io/husky/) for git hooks
+- [lint-staged](https://github.com/lint-staged/lint-staged) for running linters on staged files
 
 ## Learn More
 
