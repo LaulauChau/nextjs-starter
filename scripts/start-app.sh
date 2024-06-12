@@ -1,77 +1,45 @@
 #!/bin/bash
 
-# Comment this if you don't want to use docker for the database
+set -e
 
-# Check if docker-compose is installed
-echo "Checking if docker-compose is installed..."
-
-if ! command -v docker-compose &> /dev/null
-then
-    echo "docker-compose could not be found. Please install docker-compose."
-    exit 1
-else
-    echo "Starting the database..."
-    docker-compose up -d
-
-    if [ $? -ne 0 ]; then
-        echo "Database start failed. Exiting..."
-        exit 1
-    fi
+# Check if Node.js is installed
+if ! command -v node &> /dev/null; then
+  echo "Node.js is not installed. Please install Node.js to run this application."
+  exit 1
 fi
 
-# Function to clean up the database
-clean_up() {
-  echo "Stopping the database..."
-  docker-compose down
+# Check if Node.js version is at least 20.14.0
+NODE_MAJOR_VERSION=$(node -v | cut -d. -f1 | sed 's/[^0-9]*//g')
+NODE_MINOR_VERSION=$(node -v | cut -d. -f2 | sed 's/[^0-9]*//g')
 
-  if [ $? -ne 0 ]; then
-    echo "Database stop failed. Exiting..."
-    exit 1
-  fi
-
-  echo "Exiting..."
+if [ $NODE_MAJOR_VERSION -lt 20 ] || [ $NODE_MINOR_VERSION -lt 14 ]; then
+  echo "Node.js version is too low. Please upgrade to at least version 20.14.0."
   exit 1
-}
-
-# Trap the SIGINT signal
-trap clean_up SIGINT
-
-# Check if the node version is at least 20
-echo "Checking node version..."
-NODE_VERSION=$(node -v | cut -c 2- | cut -d '.' -f 1)
-
-if [ $NODE_VERSION -lt 20 ]; then
-  echo "Node version is too low. Please upgrade to at least version 20."
-  exit 1
-else
-  echo "Node version is sufficient."
 fi
 
 # Check if pnpm is installed
-echo "Checking if pnpm is installed..."
+if ! command -v pnpm &> /dev/null; then
+  echo "pnpm is not installed. Installing pnpm..."
+  curl -fsSL https://get.pnpm.io/install.sh | sh -
 
-if ! command -v pnpm &> /dev/null
-then
-    echo "pnpm could not be found. Installing pnpm..."
-    curl -fsSL https://get.pnpm.io/install.sh | sh -
+  if ! command -v pnpm &> /dev/null; then
+    echo "pnpm installation failed. Please install pnpm manually."
+    exit 1
+  fi
 
-    if [ $? -ne 0 ]; then
-        echo "pnpm installation failed. Exiting..."
-        exit 1
-    elif ! command -v pnpm &> /dev/null
-    then
-        echo "pnpm installation failed. Please install pnpm manually."
-        exit 1
-    fi
-else
-    echo "pnpm is installed."
+  # Source the .bashrc or .zshrc file to add pnpm to the PATH
+  if [ -f ~/.bashrc ]; then
+    source ~/.bashrc
+  elif [ -f ~/.zshrc ]; then
+    source ~/.zshrc
+  fi
 fi
 
-# Check if pnpm version is at least 9
-echo "Checking pnpm version..."
-PNPM_VERSION=$(pnpm -v | cut -c 1)
+# Check if pnpm version is at least 9.3.0
+PNPM_MAJOR_VERSION=$(pnpm -v | cut -d. -f1 | sed 's/[^0-9]*//g')
+PNPM_MINOR_VERSION=$(pnpm -v | cut -d. -f2 | sed 's/[^0-9]*//g')
 
-if [ $PNPM_VERSION -lt 9 ]; then
+if [ $PNPM_MAJOR_VERSION -lt 9 ] || [ $PNPM_MINOR_VERSION -lt 3 ]; then
   echo "pnpm version is too low. Updating pnpm..."
   pnpm add -g pnpm@latest
 
@@ -79,38 +47,19 @@ if [ $PNPM_VERSION -lt 9 ]; then
     echo "pnpm update failed. Exiting..."
     exit 1
   fi
-else
-  echo "pnpm version is sufficient."
 fi
 
 # Check if another package manager has been used
-echo "Checking for lock files..."
-LOCK_FILE=$(ls | grep -E "yarn.lock|package-lock.json")
+LOCKFILES=(bun.lockb package-lock.json yarn.lock)
 
-if [ -n "$LOCK_FILE" ]; then
-  echo "Another package manager has been used. Removing lock file..."
-  rm $LOCK_FILE
-
-  if [ $? -ne 0 ]; then
-    echo "Lock file removal failed. Exiting..."
-    exit 1
+for LOCKFILE in ${LOCKFILES[@]}; do
+  if [ -f $LOCKFILE ]; then
+    echo "Lock file $LOCKFILE found. Please use pnpm as the package manager for this application."
+    rm -rf $LOCKFILE node_modules
   fi
-else
-  echo "No lock files found."
-fi
-
-# Install dependencies
-echo "Installing dependencies..."
-pnpm install --frozen-lockfile
-
-if [ $? -ne 0 ]; then
-  echo "Dependency installation failed. Exiting..."
-  exit 1
-fi
+done
 
 # Check if .env file exists
-echo "Checking for .env file..."
-
 if [ ! -f .env ]; then
   echo ".env file not found. Creating .env file..."
   cp .env.example .env
@@ -119,38 +68,20 @@ if [ ! -f .env ]; then
     echo ".env file creation failed. Exiting..."
     exit 1
   fi
-else
-  echo ".env file found."
 fi
 
-# Ask the user if he wants to start the app in development mode or production mode
-echo "Do you want to start the app in development mode or production mode? (DEV/prod)"
-read -r MODE
+# Install dependencies
+pnpm install --frozen-lockfile
 
-# Convert the user's input to lowercase for case-insensitive comparison
-MODE_LOWERCASE=$(echo "$MODE" | tr '[:upper:]' '[:lower:]')
+# Ask the user if they want to start the application in development mode or production mode
+echo "Do you want to start the application in development mode or production mode? (default: development)"
+read -p "Enter 'dev or 'prod': " MODE
 
-if [ "$MODE_LOWERCASE" == "prod" ]; then
-  echo "Starting the app in production mode..."
+if [ "$MODE" == "prod" ]; then
+  echo "Starting the application in production mode..."
   pnpm run build
-
-  if [ $? -ne 0 ]; then
-    echo "Build failed. Exiting..."
-    exit 1
-  fi
-
-  pnpm start
-
-  if [ $? -ne 0 ]; then
-    echo "App start failed. Exiting..."
-    exit 1
-  fi
+  pnpm run start
 else
-  echo "Starting the app in development mode..."
-  pnpm dev
-
-  if [ $? -ne 0 ]; then
-    echo "App start failed. Exiting..."
-    exit 1
-  fi
+  echo "Starting the application in development mode..."
+  pnpm run dev
 fi

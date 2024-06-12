@@ -8,7 +8,7 @@ export default function MainPage({
   unstable_setRequestLocale(locale);
 
   return (
-    <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+    <h1 className="scroll-m-20 font-extrabold text-4xl tracking-tight lg:text-5xl">
       Hello world!
     </h1>
   );

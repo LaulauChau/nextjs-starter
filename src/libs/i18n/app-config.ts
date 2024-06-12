@@ -1,6 +1,4 @@
-import type { LocalePrefix } from "node_modules/next-intl/dist/types/src/shared/types";
-
-const localePrefix: LocalePrefix = "always";
+const localePrefix: "as-needed" | "always" | "never" = "always";
 
 export const appConfig = {
   defaultLocale: "en",

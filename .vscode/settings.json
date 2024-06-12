@@ -6,7 +6,6 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnPaste": true,
   "editor.formatOnSave": true,
-  "eslint.enable": false,
   "search.exclude": {
     "pnpm-lock.yaml": true
   },

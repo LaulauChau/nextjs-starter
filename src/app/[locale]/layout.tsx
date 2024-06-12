@@ -5,6 +5,7 @@ import { unstable_setRequestLocale } from "next-intl/server";
 import type { PropsWithChildren } from "react";
 
 import "~/assets/css/globals.css";
+import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/sonner";
 import { appConfig } from "~/libs/i18n/app-config";
 import { ReactQueryProvider } from "~/libs/react-query/provider";
@@ -29,12 +30,19 @@ export default function MainLayout({
   const messages = useMessages();
 
   return (
-    <html lang={locale} className={cn(GeistSans.variable)}>
+    <html lang={locale} className={cn("font-sans", GeistSans.variable)}>
       <body>
         <ReactQueryProvider>
           <NextIntlClientProvider locale={locale} messages={messages}>
-            {children}
-            <Toaster richColors />
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster richColors />
+            </ThemeProvider>
           </NextIntlClientProvider>
         </ReactQueryProvider>
       </body>
